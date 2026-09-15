@@ -1,0 +1,9 @@
+package com.openwps.office.model
+data class TextStyle(
+    val fontFamily: String? = null,
+    val fontSize: Float? = null,
+    val isBold: Boolean? = null,
+    val isItalic: Boolean? = null,
+    val isUnderline: Boolean? = null,
+    val textColorHex: String? = null
+)

@@ -5,7 +5,7 @@ project("openwps-core")
 add_library(
         openwps-core
         SHARED
-        native-lib.cpp)
+        jni/jni_bridge.cpp)
 
 find_library(
         log-lib

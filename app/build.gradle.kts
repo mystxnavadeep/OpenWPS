@@ -49,6 +49,9 @@ android {
 }
 
 dependencies {
+    implementation(project(":engines:document"))
+    implementation(project(":office:api"))
+    implementation(project(":office:model"))
     implementation(libs.androidx.room.runtime)
     implementation(project(":core:common"))
     implementation(project(":core:ui"))

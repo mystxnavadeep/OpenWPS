@@ -42,3 +42,10 @@ Jetpack Compose Navigation (`androidx.navigation.compose`) manages a robust back
 - **UI:** Compose-based `FileManagerScreen` with Grid/List views, search, and sort functionality.
 - **DataStore:** `FileManagerPreferences` integration for view preferences.
 - **Database:** Room database updated with recent/favorites file types and locations.
+
+### Phase 3: AI-Ready Document Engine Foundation
+- **C++ Engine:** Native engine with cross-platform core and granular model support (`DocumentObjectId`, `DocumentRange`).
+- **JNI Boundary:** Exposed capability registry, command execution, and session management.
+- **Office API:** Extensible Kotlin API for documents (`DocumentSession`, `DocumentCommand`, `DocumentCapability`, `OperationResult`).
+- **Import/Export:** Standardized adapter boundary for third-party libraries (`DocumentImporter`, `DocumentExporter`).
+- **UI:** Minimal Compose-based Document Editor to interact with the engine.

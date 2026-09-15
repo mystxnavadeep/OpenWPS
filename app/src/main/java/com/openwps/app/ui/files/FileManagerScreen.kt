@@ -19,7 +19,8 @@ import com.openwps.core.filesystem.domain.FileType
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FileManagerScreen(
-    viewModel: FileManagerViewModel = hiltViewModel()
+    viewModel: FileManagerViewModel = hiltViewModel(),
+    onNavigateToEditor: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     
@@ -39,6 +40,7 @@ fun FileManagerScreen(
                 },
                 actions = {
                     TextButton(onClick = { 
+                        IconButton(onClick = onNavigateToEditor) { Icon(Icons.Default.Edit, contentDescription = "Editor") }
                         viewModel.setViewMode(if (uiState.viewMode == "LIST") "GRID" else "LIST") 
                     }) {
                         Text(if (uiState.viewMode == "LIST") "GRID" else "LIST")
