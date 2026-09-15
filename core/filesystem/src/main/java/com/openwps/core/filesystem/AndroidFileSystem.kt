@@ -4,7 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.provider.DocumentsContract
 import androidx.documentfile.provider.DocumentFile
-import com.openwps.core.common.error.AppError
+import com.openwps.core.common.result.AppError
 import com.openwps.core.common.result.Result
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
