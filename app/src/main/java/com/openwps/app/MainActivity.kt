@@ -77,7 +77,8 @@ class MainActivity : ComponentActivity() {
                 ) { innerPadding ->
                     AppNavGraph(
                         navController = navController,
-                        startDestination = Destinations.HOME
+                        startDestination = Destinations.HOME,
+                        modifier = Modifier.padding(innerPadding)
                     )
                 }
             }
