@@ -1,0 +1,19 @@
+--- app/src/main/java/com/openwps/app/ui/files/FileManagerScreen.kt
++++ app/src/main/java/com/openwps/app/ui/files/FileManagerScreen.kt
+@@ -39,12 +39,11 @@
+                     }
+                 },
+                 actions = {
+-                    TextButton(onClick = { 
+-                        IconButton(onClick = onNavigateToEditor) { Icon(Icons.Default.Edit, contentDescription = "Editor") }
+-                        viewModel.setViewMode(if (uiState.viewMode == "LIST") "GRID" else "LIST") 
+-                    }) {
+-                        Text(if (uiState.viewMode == "LIST") "GRID" else "LIST")
++                    IconButton(onClick = onNavigateToEditor) { 
++                        Icon(Icons.Default.Edit, contentDescription = "Editor") 
+                     }
++                    TextButton(onClick = { viewModel.setViewMode(if (uiState.viewMode == "LIST") "GRID" else "LIST") }) {
++                        Text(if (uiState.viewMode == "LIST") "GRID" else "LIST")
++                    }
+                 }
+             )

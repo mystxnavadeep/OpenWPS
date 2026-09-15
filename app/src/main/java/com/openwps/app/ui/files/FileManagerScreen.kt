@@ -39,8 +39,9 @@ fun FileManagerScreen(
                     }
                 },
                 actions = {
+                    IconButton(onClick = onNavigateToEditor) { Icon(Icons.Default.Edit, contentDescription = "Editor") }
                     TextButton(onClick = { 
-                        IconButton(onClick = onNavigateToEditor) { Icon(Icons.Default.Edit, contentDescription = "Editor") }
+
                         viewModel.setViewMode(if (uiState.viewMode == "LIST") "GRID" else "LIST") 
                     }) {
                         Text(if (uiState.viewMode == "LIST") "GRID" else "LIST")

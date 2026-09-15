@@ -15,13 +15,13 @@ class NativeDocumentSession(
     private var sessionPtr: Long = 0L
 
     init {
-        sessionPtr = NativeBridge.instance.createSession(sessionId)
+        sessionPtr = NativeBridge.createSession(sessionId)
     }
 
     override suspend fun applyCommand(command: DocumentCommand): OperationResult {
         return when (command) {
             is DocumentCommand.InsertText -> {
-                val success = NativeBridge.instance.insertText(sessionPtr, command.text)
+                val success = NativeBridge.insertText(sessionPtr, command.text)
                 OperationResult(
                     success = success,
                     operationId = "op_${System.currentTimeMillis()}",
@@ -35,7 +35,7 @@ class NativeDocumentSession(
     }
 
     override suspend fun getText(range: DocumentRange): String {
-        return NativeBridge.instance.getText(sessionPtr)
+        return NativeBridge.getText(sessionPtr)
     }
 
     override suspend fun save(): OperationResult {
@@ -44,7 +44,7 @@ class NativeDocumentSession(
 
     override suspend fun close() {
         if (sessionPtr != 0L) {
-            NativeBridge.instance.destroySession(sessionPtr)
+            NativeBridge.destroySession(sessionPtr)
             sessionPtr = 0L
         }
     }
