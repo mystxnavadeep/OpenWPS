@@ -60,3 +60,9 @@ include(":image:providers")
 
 // testing
 include(":testing")
+
+include(":core:common")
+include(":core:database")
+include(":core:filesystem")
+include(":core:ui")
+include(":engines:common")
