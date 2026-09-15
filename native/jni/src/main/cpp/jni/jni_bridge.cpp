@@ -55,7 +55,7 @@ Java_com_openwps_ndk_jni_NativeBridge_insertText(
         std::string text_;
     };
     
-    SimpleInsertCommand cmd(std::string(text));
+    SimpleInsertCommand cmd(text);
     CommandResult result = session->applyCommand(cmd);
     
     env->ReleaseStringUTFChars(textStr, text);
