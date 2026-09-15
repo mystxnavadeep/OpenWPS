@@ -1,4 +1,4 @@
-package com.openwps.native.jni
+package com.openwps.ndk.jni
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Assert.assertEquals

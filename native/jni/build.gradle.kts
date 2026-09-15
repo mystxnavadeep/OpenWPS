@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.openwps.native.jni"
+    namespace = "com.openwps.ndk.jni"
     compileSdk = 34
     
     // NDK setting, default for AGP 8.x is often 25.1.8937393 or similar, will rely on auto-download or specify if needed.

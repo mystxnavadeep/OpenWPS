@@ -3,7 +3,7 @@ package com.openwps.app.di
 import com.openwps.core.common.result.Result
 import com.openwps.engines.common.NativeEngine
 import com.openwps.engines.common.NativeEngineInfo
-import com.openwps.native.jni.NativeBridge
+import com.openwps.ndk.jni.NativeBridge
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

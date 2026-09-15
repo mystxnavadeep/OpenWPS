@@ -1,4 +1,4 @@
-package com.openwps.native.jni
+package com.openwps.ndk.jni
 
 object NativeBridge {
     init {

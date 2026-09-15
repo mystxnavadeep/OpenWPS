@@ -2,7 +2,7 @@
 #include <string>
 
 extern "C" JNIEXPORT jstring JNICALL
-Java_com_openwps_native_jni_NativeBridge_getEngineVersion(
+Java_com_openwps_ndk_jni_NativeBridge_getEngineVersion(
         JNIEnv* env,
         jobject /* this */) {
     std::string version = "OpenWPS Core Engine v0.1.0";
