@@ -8,5 +8,8 @@ data class RecentFileEntity(
     @PrimaryKey val uri: String,
     val name: String,
     val lastAccessed: Long,
-    val mimeType: String
+    val mimeType: String,
+    val locationId: String = "unknown",
+    val fileType: String = "unknown",
+    val sizeBytes: Long = 0L
 )

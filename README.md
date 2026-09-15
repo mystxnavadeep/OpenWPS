@@ -34,3 +34,11 @@ Jetpack Compose Navigation (`androidx.navigation.compose`) manages a robust back
 1. Open in Android Studio or use Gradle wrapper.
 2. Ensure you have NDK installed.
 3. CI automatically builds the APK on push to main via GitHub Actions.
+
+### Phase 2: Production File Manager + Storage Integration (Complete)
+- **Filesystem Abstraction:** `OpenWpsFileSystem` extended with local and SAF providers.
+- **Android SAF Integration:** `AndroidFileSystem` implements local storage access.
+- **Domain Modeling:** Centralized `FileTypeDetector` and `FileRouter` mapping to open targets.
+- **UI:** Compose-based `FileManagerScreen` with Grid/List views, search, and sort functionality.
+- **DataStore:** `FileManagerPreferences` integration for view preferences.
+- **Database:** Room database updated with recent/favorites file types and locations.

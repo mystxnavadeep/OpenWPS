@@ -23,6 +23,8 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.documentfile)
     implementation(project(":core:common"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.kotlinx.coroutines.core)

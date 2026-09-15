@@ -23,7 +23,7 @@ object DatabaseModule {
             context,
             OpenWpsDatabase::class.java,
             "openwps.db"
-        ).build()
+        ).addMigrations(OpenWpsDatabase.MIGRATION_1_2).build()
     }
 
     @Provides

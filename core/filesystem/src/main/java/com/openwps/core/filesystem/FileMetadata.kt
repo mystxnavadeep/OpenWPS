@@ -5,5 +5,6 @@ data class FileMetadata(
     val name: String,
     val sizeBytes: Long,
     val lastModified: Long,
-    val isDirectory: Boolean
+    val isDirectory: Boolean,
+    val mimeType: String = ""
 )
