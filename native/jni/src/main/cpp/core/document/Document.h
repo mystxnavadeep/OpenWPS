@@ -33,7 +33,7 @@ public:
         for (const auto& sec : sections_) {
             for (const auto& blk : sec->blocks()) {
                 if (blk->paragraph() && blk->paragraph()->id().id() == id) {
-                    return blk->paragraph().get();
+                    return blk->paragraph();
                 }
             }
         }

@@ -146,12 +146,12 @@ Java_com_openwps_ndk_jni_NativeBridge_insertText(
         env->ReleaseStringUTFChars(styleJsonStr, sJson);
         
         TextStyle s;
-        if (json.find("\"isBold\":true") != std::string::npos) s.setIsBold(true);
-        else if (json.find("\"isBold\":false") != std::string::npos) s.setIsBold(false);
-        if (json.find("\"isItalic\":true") != std::string::npos) s.setIsItalic(true);
-        else if (json.find("\"isItalic\":false") != std::string::npos) s.setIsItalic(false);
-        if (json.find("\"isUnderline\":true") != std::string::npos) s.setIsUnderline(true);
-        else if (json.find("\"isUnderline\":false") != std::string::npos) s.setIsUnderline(false);
+        if (json.find("\"isBold\":true") != std::string::npos) s.isBold = true;
+        else if (json.find("\"isBold\":false") != std::string::npos) s.isBold = false;
+        if (json.find("\"isItalic\":true") != std::string::npos) s.isItalic = true;
+        else if (json.find("\"isItalic\":false") != std::string::npos) s.isItalic = false;
+        if (json.find("\"isUnderline\":true") != std::string::npos) s.isUnderline = true;
+        else if (json.find("\"isUnderline\":false") != std::string::npos) s.isUnderline = false;
         // color parsing left as an exercise for production
         styleOpt = s;
     }
@@ -215,12 +215,12 @@ Java_com_openwps_ndk_jni_NativeBridge_applyTextStyle(
     env->ReleaseStringUTFChars(styleJsonStr, sJson);
     
     TextStyle s;
-    if (json.find("\"isBold\":true") != std::string::npos) s.setIsBold(true);
-    else if (json.find("\"isBold\":false") != std::string::npos) s.setIsBold(false);
-    if (json.find("\"isItalic\":true") != std::string::npos) s.setIsItalic(true);
-    else if (json.find("\"isItalic\":false") != std::string::npos) s.setIsItalic(false);
-    if (json.find("\"isUnderline\":true") != std::string::npos) s.setIsUnderline(true);
-    else if (json.find("\"isUnderline\":false") != std::string::npos) s.setIsUnderline(false);
+    if (json.find("\"isBold\":true") != std::string::npos) s.isBold = true;
+    else if (json.find("\"isBold\":false") != std::string::npos) s.isBold = false;
+    if (json.find("\"isItalic\":true") != std::string::npos) s.isItalic = true;
+    else if (json.find("\"isItalic\":false") != std::string::npos) s.isItalic = false;
+    if (json.find("\"isUnderline\":true") != std::string::npos) s.isUnderline = true;
+    else if (json.find("\"isUnderline\":false") != std::string::npos) s.isUnderline = false;
 
     std::ostringstream ss;
     if (startId != endId) {
