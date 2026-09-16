@@ -1,7 +1,10 @@
 #include <jni.h>
 #include <string>
+#include <sstream>
+#include <algorithm>
 #include "../core/api/DocumentSession.h"
 #include "../core/document/Document.h"
+#include "../core/document/DocumentRange.h"
 
 using namespace openwps::core;
 
@@ -9,7 +12,7 @@ extern "C" JNIEXPORT jstring JNICALL
 Java_com_openwps_ndk_jni_NativeBridge_getEngineVersion(
         JNIEnv* env,
         jobject /* this */) {
-    std::string version = "OpenWPS Core Engine v0.3.0";
+    std::string version = "OpenWPS Core Engine v0.4.0 (Precision Text)";
     return env->NewStringUTF(version.c_str());
 }
 
@@ -33,96 +36,238 @@ Java_com_openwps_ndk_jni_NativeBridge_destroySession(
     delete session;
 }
 
-extern "C" JNIEXPORT jboolean JNICALL
-Java_com_openwps_ndk_jni_NativeBridge_insertText(
-        JNIEnv* env,
-        jobject /* this */,
-        jlong sessionPtr,
-        jstring textStr) {
+extern "C" JNIEXPORT jstring JNICALL
+Java_com_openwps_ndk_jni_NativeBridge_resolveWord(
+        JNIEnv* env, jobject, jlong sessionPtr,
+        jstring paragraphIdStr, jint wordIndex) {
     auto* session = reinterpret_cast<DocumentSession*>(sessionPtr);
-    const char *text = env->GetStringUTFChars(textStr, nullptr);
+    const char* pId = env->GetStringUTFChars(paragraphIdStr, nullptr);
+    std::string paragraphId(pId);
+    env->ReleaseStringUTFChars(paragraphIdStr, pId);
     
-    // Very simplified insertion for Phase 3 demo
-    class SimpleInsertCommand : public Command {
-    public:
-        SimpleInsertCommand(std::string text) : text_(std::move(text)) {}
-        CommandResult execute(Document& document) override {
-            // Insert at end for simplicity
-            document.insertTextSimple(text_);
-            return CommandResult(true);
+    Paragraph* p = session->document().findParagraph(paragraphId);
+    std::ostringstream ss;
+    if (!p) {
+        ss << "{\"success\":false,\"errorCode\":\"INVALID_OBJECT_ID\"}";
+    } else {
+        int start = 0, end = 0;
+        if (p->getWordRange(wordIndex, start, end)) {
+            DocumentRange range{DocumentObjectId(paragraphId), start, DocumentObjectId(paragraphId), end};
+            ss << "{\"success\":true,\"errorCode\":\"NONE\",\"affectedRange\":" << range.toJson() << "}";
+        } else {
+            ss << "{\"success\":false,\"errorCode\":\"INVALID_WORD_INDEX\"}";
         }
-    private:
-        std::string text_;
-    };
-    
-    SimpleInsertCommand cmd(text);
-    CommandResult result = session->applyCommand(cmd);
-    
-    env->ReleaseStringUTFChars(textStr, text);
-    return result.success();
+    }
+    return env->NewStringUTF(ss.str().c_str());
 }
 
 extern "C" JNIEXPORT jstring JNICALL
-Java_com_openwps_ndk_jni_NativeBridge_getText(
-        JNIEnv* env,
-        jobject /* this */,
-        jlong sessionPtr) {
+Java_com_openwps_ndk_jni_NativeBridge_resolveSentence(
+        JNIEnv* env, jobject, jlong sessionPtr,
+        jstring paragraphIdStr, jint sentenceIndex) {
     auto* session = reinterpret_cast<DocumentSession*>(sessionPtr);
-    std::string text = session->getText();
-    return env->NewStringUTF(text.c_str());
+    const char* pId = env->GetStringUTFChars(paragraphIdStr, nullptr);
+    std::string paragraphId(pId);
+    env->ReleaseStringUTFChars(paragraphIdStr, pId);
+    
+    Paragraph* p = session->document().findParagraph(paragraphId);
+    std::ostringstream ss;
+    if (!p) {
+        ss << "{\"success\":false,\"errorCode\":\"INVALID_OBJECT_ID\"}";
+    } else {
+        int start = 0, end = 0;
+        if (p->getSentenceRange(sentenceIndex, start, end)) {
+            DocumentRange range{DocumentObjectId(paragraphId), start, DocumentObjectId(paragraphId), end};
+            ss << "{\"success\":true,\"errorCode\":\"NONE\",\"affectedRange\":" << range.toJson() << "}";
+        } else {
+            ss << "{\"success\":false,\"errorCode\":\"INVALID_SENTENCE_INDEX\"}";
+        }
+    }
+    return env->NewStringUTF(ss.str().c_str());
+}
+
+extern "C" JNIEXPORT jstring JNICALL
+Java_com_openwps_ndk_jni_NativeBridge_search(
+        JNIEnv* env, jobject, jlong sessionPtr,
+        jstring queryStr, jboolean matchCase) {
+    auto* session = reinterpret_cast<DocumentSession*>(sessionPtr);
+    const char* q = env->GetStringUTFChars(queryStr, nullptr);
+    std::string query(q);
+    env->ReleaseStringUTFChars(queryStr, q);
+    
+    std::string lowerQuery = query;
+    if (!matchCase) {
+        std::transform(lowerQuery.begin(), lowerQuery.end(), lowerQuery.begin(), ::tolower);
+    }
+    
+    std::ostringstream ss;
+    ss << "[";
+    bool first = true;
+    for (const auto& sec : session->document().sections()) {
+        for (const auto& blk : sec->blocks()) {
+            if (blk->paragraph()) {
+                std::string pText = blk->paragraph()->text();
+                std::string searchTarget = pText;
+                if (!matchCase) {
+                    std::transform(searchTarget.begin(), searchTarget.end(), searchTarget.begin(), ::tolower);
+                }
+                size_t pos = searchTarget.find(lowerQuery, 0);
+                while (pos != std::string::npos) {
+                    if (!first) ss << ",";
+                    DocumentRange r{blk->paragraph()->id(), (int)pos, blk->paragraph()->id(), (int)(pos + query.length())};
+                    ss << r.toJson();
+                    first = false;
+                    pos = searchTarget.find(lowerQuery, pos + query.length());
+                }
+            }
+        }
+    }
+    ss << "]";
+    return env->NewStringUTF(ss.str().c_str());
+}
+
+extern "C" JNIEXPORT jstring JNICALL
+Java_com_openwps_ndk_jni_NativeBridge_insertText(
+        JNIEnv* env, jobject, jlong sessionPtr,
+        jstring objectIdStr, jint offset, jstring textStr, jstring styleJsonStr) {
+    auto* session = reinterpret_cast<DocumentSession*>(sessionPtr);
+    const char* oId = env->GetStringUTFChars(objectIdStr, nullptr);
+    const char* txt = env->GetStringUTFChars(textStr, nullptr);
+    std::string objectId(oId);
+    std::string text(txt);
+    env->ReleaseStringUTFChars(objectIdStr, oId);
+    env->ReleaseStringUTFChars(textStr, txt);
+    
+    std::optional<TextStyle> styleOpt = std::nullopt;
+    if (styleJsonStr) {
+        // very basic manual parsing of the provided subset
+        const char* sJson = env->GetStringUTFChars(styleJsonStr, nullptr);
+        std::string json(sJson);
+        env->ReleaseStringUTFChars(styleJsonStr, sJson);
+        
+        TextStyle s;
+        if (json.find("\"isBold\":true") != std::string::npos) s.setIsBold(true);
+        else if (json.find("\"isBold\":false") != std::string::npos) s.setIsBold(false);
+        if (json.find("\"isItalic\":true") != std::string::npos) s.setIsItalic(true);
+        else if (json.find("\"isItalic\":false") != std::string::npos) s.setIsItalic(false);
+        if (json.find("\"isUnderline\":true") != std::string::npos) s.setIsUnderline(true);
+        else if (json.find("\"isUnderline\":false") != std::string::npos) s.setIsUnderline(false);
+        // color parsing left as an exercise for production
+        styleOpt = s;
+    }
+    
+    Paragraph* p = session->document().findParagraph(objectId);
+    std::ostringstream ss;
+    if (!p) {
+        ss << "{\"success\":false,\"errorCode\":\"INVALID_OBJECT_ID\"}";
+    } else {
+        p->insertText(offset, text, styleOpt);
+        session->document().incrementVersion();
+        DocumentRange range{DocumentObjectId(objectId), offset, DocumentObjectId(objectId), (int)(offset + text.length())};
+        ss << "{\"success\":true,\"errorCode\":\"NONE\",\"affectedRange\":" << range.toJson() << "}";
+    }
+    return env->NewStringUTF(ss.str().c_str());
+}
+
+extern "C" JNIEXPORT jstring JNICALL
+Java_com_openwps_ndk_jni_NativeBridge_deleteRange(
+        JNIEnv* env, jobject, jlong sessionPtr,
+        jstring startIdStr, jint startOffset, jstring endIdStr, jint endOffset) {
+    auto* session = reinterpret_cast<DocumentSession*>(sessionPtr);
+    const char* sId = env->GetStringUTFChars(startIdStr, nullptr);
+    const char* eId = env->GetStringUTFChars(endIdStr, nullptr);
+    std::string startId(sId);
+    std::string endId(eId);
+    env->ReleaseStringUTFChars(startIdStr, sId);
+    env->ReleaseStringUTFChars(endIdStr, eId);
+    
+    std::ostringstream ss;
+    if (startId != endId) {
+        ss << "{\"success\":false,\"errorCode\":\"UNSUPPORTED_OPERATION\",\"errorMessage\":\"Cross-paragraph deletion not supported yet\"}";
+    } else {
+        Paragraph* p = session->document().findParagraph(startId);
+        if (!p) {
+            ss << "{\"success\":false,\"errorCode\":\"INVALID_OBJECT_ID\"}";
+        } else {
+            p->deleteText(startOffset, endOffset);
+            session->document().incrementVersion();
+            DocumentRange range{DocumentObjectId(startId), startOffset, DocumentObjectId(startId), startOffset};
+            ss << "{\"success\":true,\"errorCode\":\"NONE\",\"affectedRange\":" << range.toJson() << "}";
+        }
+    }
+    return env->NewStringUTF(ss.str().c_str());
+}
+
+extern "C" JNIEXPORT jstring JNICALL
+Java_com_openwps_ndk_jni_NativeBridge_applyTextStyle(
+        JNIEnv* env, jobject, jlong sessionPtr,
+        jstring startIdStr, jint startOffset, jstring endIdStr, jint endOffset, jstring styleJsonStr) {
+    auto* session = reinterpret_cast<DocumentSession*>(sessionPtr);
+    const char* sId = env->GetStringUTFChars(startIdStr, nullptr);
+    const char* eId = env->GetStringUTFChars(endIdStr, nullptr);
+    std::string startId(sId);
+    std::string endId(eId);
+    env->ReleaseStringUTFChars(startIdStr, sId);
+    env->ReleaseStringUTFChars(endIdStr, eId);
+    
+    const char* sJson = env->GetStringUTFChars(styleJsonStr, nullptr);
+    std::string json(sJson);
+    env->ReleaseStringUTFChars(styleJsonStr, sJson);
+    
+    TextStyle s;
+    if (json.find("\"isBold\":true") != std::string::npos) s.setIsBold(true);
+    else if (json.find("\"isBold\":false") != std::string::npos) s.setIsBold(false);
+    if (json.find("\"isItalic\":true") != std::string::npos) s.setIsItalic(true);
+    else if (json.find("\"isItalic\":false") != std::string::npos) s.setIsItalic(false);
+    if (json.find("\"isUnderline\":true") != std::string::npos) s.setIsUnderline(true);
+    else if (json.find("\"isUnderline\":false") != std::string::npos) s.setIsUnderline(false);
+
+    std::ostringstream ss;
+    if (startId != endId) {
+        ss << "{\"success\":false,\"errorCode\":\"UNSUPPORTED_OPERATION\",\"errorMessage\":\"Cross-paragraph styling not supported yet\"}";
+    } else {
+        Paragraph* p = session->document().findParagraph(startId);
+        if (!p) {
+            ss << "{\"success\":false,\"errorCode\":\"INVALID_OBJECT_ID\"}";
+        } else {
+            p->applyStyle(startOffset, endOffset, s);
+            session->document().incrementVersion();
+            DocumentRange range{DocumentObjectId(startId), startOffset, DocumentObjectId(startId), endOffset};
+            ss << "{\"success\":true,\"errorCode\":\"NONE\",\"affectedRange\":" << range.toJson() << "}";
+        }
+    }
+    return env->NewStringUTF(ss.str().c_str());
+}
+
+extern "C" JNIEXPORT jstring JNICALL
+Java_com_openwps_ndk_jni_NativeBridge_getTextRange(
+        JNIEnv* env, jobject, jlong sessionPtr,
+        jstring startIdStr, jint startOffset, jstring endIdStr, jint endOffset) {
+    auto* session = reinterpret_cast<DocumentSession*>(sessionPtr);
+    const char* sId = env->GetStringUTFChars(startIdStr, nullptr);
+    const char* eId = env->GetStringUTFChars(endIdStr, nullptr);
+    std::string startId(sId);
+    std::string endId(eId);
+    env->ReleaseStringUTFChars(startIdStr, sId);
+    env->ReleaseStringUTFChars(endIdStr, eId);
+    
+    if (startId != endId) {
+        // very basic
+        return env->NewStringUTF(session->document().getText().c_str());
+    } else {
+        Paragraph* p = session->document().findParagraph(startId);
+        if (!p) return env->NewStringUTF("");
+        std::string txt = p->text();
+        if (startOffset < 0) startOffset = 0;
+        if (endOffset > txt.length()) endOffset = txt.length();
+        if (startOffset >= endOffset) return env->NewStringUTF("");
+        return env->NewStringUTF(txt.substr(startOffset, endOffset - startOffset).c_str());
+    }
 }
 
 extern "C" JNIEXPORT jstring JNICALL
 Java_com_openwps_ndk_jni_NativeBridge_getDocumentStructure(
-        JNIEnv* env,
-        jobject /* this */,
-        jlong sessionPtr) {
+        JNIEnv* env, jobject, jlong sessionPtr) {
     auto* session = reinterpret_cast<DocumentSession*>(sessionPtr);
     return env->NewStringUTF(session->document().toJson().c_str());
-}
-
-extern "C" JNIEXPORT jboolean JNICALL
-Java_com_openwps_ndk_jni_NativeBridge_deleteRange(
-        JNIEnv* env,
-        jobject /* this */,
-        jlong sessionPtr,
-        jstring startIdStr, jint startOffset,
-        jstring endIdStr, jint endOffset) {
-    auto* session = reinterpret_cast<DocumentSession*>(sessionPtr);
-    
-    // In a full implementation, this parses the IDs and creates a DeleteRangeCommand.
-    // For now, we simulate success to prove the API boundary.
-    class DummyDeleteCommand : public Command {
-    public:
-        CommandResult execute(Document& document) override {
-            document.incrementVersion(); // simulate mutation
-            return CommandResult(true);
-        }
-    };
-    
-    DummyDeleteCommand cmd;
-    return session->applyCommand(cmd).success();
-}
-
-extern "C" JNIEXPORT jboolean JNICALL
-Java_com_openwps_ndk_jni_NativeBridge_applyTextStyle(
-        JNIEnv* env,
-        jobject /* this */,
-        jlong sessionPtr,
-        jstring startIdStr, jint startOffset,
-        jstring endIdStr, jint endOffset,
-        jstring styleJsonStr) {
-    auto* session = reinterpret_cast<DocumentSession*>(sessionPtr);
-    
-    // In a full implementation, this applies the style and normalizes runs.
-    class DummyStyleCommand : public Command {
-    public:
-        CommandResult execute(Document& document) override {
-            document.incrementVersion(); // simulate mutation
-            return CommandResult(true);
-        }
-    };
-    
-    DummyStyleCommand cmd;
-    return session->applyCommand(cmd).success();
 }

@@ -1,26 +1,29 @@
 #pragma once
+#include <string>
 #include "DocumentObjectId.h"
+#include <sstream>
+#include "../utils/JsonBuilder.h"
 
 namespace openwps {
 namespace core {
 
-class DocumentRange {
-public:
-    DocumentRange(DocumentObjectId startId, int startOff, DocumentObjectId endId, int endOff)
-        : startObjectId_(std::move(startId)), startOffset_(startOff),
-          endObjectId_(std::move(endId)), endOffset_(endOff) {}
+struct DocumentRange {
+    DocumentObjectId startObjectId;
+    int startOffset;
+    DocumentObjectId endObjectId;
+    int endOffset;
 
-    const DocumentObjectId& startObjectId() const { return startObjectId_; }
-    int startOffset() const { return startOffset_; }
-    const DocumentObjectId& endObjectId() const { return endObjectId_; }
-    int endOffset() const { return endOffset_; }
-
-private:
-    DocumentObjectId startObjectId_;
-    int startOffset_;
-    DocumentObjectId endObjectId_;
-    int endOffset_;
+    std::string toJson() const {
+        std::ostringstream ss;
+        ss << "{";
+        ss << "\"startObjectId\":\"" << JsonBuilder::escape(startObjectId.id()) << "\",";
+        ss << "\"startOffset\":" << startOffset << ",";
+        ss << "\"endObjectId\":\"" << JsonBuilder::escape(endObjectId.id()) << "\",";
+        ss << "\"endOffset\":" << endOffset;
+        ss << "}";
+        return ss.str();
+    }
 };
 
-} // namespace core
-} // namespace openwps
+}
+}

@@ -5,13 +5,17 @@ import com.openwps.office.api.DocumentCapability
 
 class NativeCapabilityRegistry : CapabilityRegistry {
     private val capabilities = listOf(
-        DocumentCapability("document.text.read", "Can read raw text from the document", true),
-        DocumentCapability("document.text.insert", "Can insert basic text into the document", true),
-        DocumentCapability("document.text.delete", "Can delete text ranges", true),
-        DocumentCapability("document.text.style", "Can apply basic formatting", true),
-        DocumentCapability("document.structure.read", "Can read the structured document model", true),
-        DocumentCapability("document.paragraph.edit", "Can mutate paragraph structure", false),
-        DocumentCapability("document.range.resolve", "Can resolve text positions to stable ranges", false)
+        DocumentCapability("document.text.character.read", "Can read text characters", true),
+        DocumentCapability("document.text.character.edit", "Can edit text characters (insert/delete)", true),
+        DocumentCapability("document.text.word.resolve", "Can resolve word indexes to stable ranges", true),
+        DocumentCapability("document.text.sentence.resolve", "Can resolve sentence indexes to stable ranges", true),
+        DocumentCapability("document.text.punctuation.resolve", "Can resolve punctuation characters", true),
+        DocumentCapability("document.text.search", "Can search text deterministically", true),
+        DocumentCapability("document.text.insert", "Can insert text at specific ranges", true),
+        DocumentCapability("document.text.delete", "Can delete specific text ranges", true),
+        DocumentCapability("document.text.replace", "Can replace specific text ranges", false), // Could be combo of delete/insert
+        DocumentCapability("document.text.style", "Can apply formatting to character ranges", true),
+        DocumentCapability("document.structure.read", "Can read the structured document model", true)
     )
 
     override fun getCapabilities(): List<DocumentCapability> = capabilities

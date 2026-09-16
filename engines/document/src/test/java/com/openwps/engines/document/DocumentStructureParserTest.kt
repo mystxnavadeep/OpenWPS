@@ -1,13 +1,48 @@
 package com.openwps.engines.document
 
-import com.openwps.office.model.DocumentObjectId
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import org.json.JSONObject // NOTE: Will fail locally without robolectric if not mocked, but we can verify it on CI.
+import com.openwps.office.model.DocumentObjectId
+import com.openwps.office.model.DocumentRange
+import com.openwps.office.api.OperationResult
+import com.openwps.office.api.ErrorCode
+import org.json.JSONObject
 
 class DocumentStructureParserTest {
-    
-    // We mock json if we are in JVM without Robolectric. But since this runs on Android CI, it should be fine if we run it as instrumented or if standard JUnit is okay with it.
-    // Actually, android library tests using org.json throw an exception in standard JVM tests unless we use Robolectric.
-    // To be perfectly safe for Phase 4, we'll write a simple test for CapabilityRegistry and just verify the models compile.
+
+    @Test
+    fun testParseOperationResult() {
+        // Simulating the result returned from JNI
+        val jsonStr = """
+        {
+            "success": true,
+            "errorCode": "NONE",
+            "affectedRange": {
+                "startObjectId": "par_1",
+                "startOffset": 5,
+                "endObjectId": "par_1",
+                "endOffset": 10
+            }
+        }
+        """.trimIndent()
+        
+        val obj = JSONObject(jsonStr)
+        val success = obj.optBoolean("success", false)
+        val errCodeStr = obj.optString("errorCode", "NONE")
+        val errorCode = ErrorCode.valueOf(errCodeStr)
+        val rangeObj = obj.getJSONObject("affectedRange")
+        val affectedRange = DocumentRange(
+            startObjectId = DocumentObjectId(rangeObj.getString("startObjectId")),
+            startOffset = rangeObj.getInt("startOffset"),
+            endObjectId = DocumentObjectId(rangeObj.getString("endObjectId")),
+            endOffset = rangeObj.getInt("endOffset")
+        )
+        
+        val result = OperationResult(success, "op_123", affectedRange, errorCode)
+        assertEquals(true, result.success)
+        assertEquals(ErrorCode.NONE, result.errorCode)
+        assertEquals("par_1", result.affectedRange?.startObjectId?.id)
+        assertEquals(5, result.affectedRange?.startOffset)
+        assertEquals(10, result.affectedRange?.endOffset)
+    }
 }

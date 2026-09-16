@@ -33,7 +33,6 @@ class DocumentEditorViewModel @Inject constructor() : ViewModel() {
     private var session: DocumentSession? = null
 
     init {
-        // Initialize an empty native session for demo
         val registry = NativeCapabilityRegistry()
         session = NativeDocumentSession(UUID.randomUUID().toString(), registry)
         refreshContent()
@@ -41,7 +40,11 @@ class DocumentEditorViewModel @Inject constructor() : ViewModel() {
 
     fun insertText(text: String) {
         viewModelScope.launch {
-            val range = DocumentRange(DocumentObjectId("root"), 0, DocumentObjectId("root"), 0)
+            val model = _uiState.value.documentModel
+            val targetParagraphId = model?.sections?.firstOrNull()?.blocks?.firstOrNull()?.paragraph?.id?.id ?: "par_initial"
+            
+            // Just insert at offset 10000, C++ handles bounding it to paragraph length
+            val range = DocumentRange(DocumentObjectId(targetParagraphId), 10000, DocumentObjectId(targetParagraphId), 10000)
             val cmd = DocumentCommand.InsertText(range, text)
             val result = session?.applyCommand(cmd)
             if (result?.success == true) {
@@ -54,10 +57,11 @@ class DocumentEditorViewModel @Inject constructor() : ViewModel() {
 
     private fun refreshContent() {
         viewModelScope.launch {
-            val range = DocumentRange(DocumentObjectId("root"), 0, DocumentObjectId("root"), 0)
+            // For full document text, start and end ID can be different or empty, our C++ handles startId != endId as returning all text for now
+            val range = DocumentRange(DocumentObjectId("start"), 0, DocumentObjectId("end"), 0)
             val text = session?.getText(range) ?: ""
             val model = session?.getDocumentStructure()
-            _uiState.update { it.copy(content = text, documentModel = model) }
+            _uiState.update { it.copy(content = text, documentModel = model, error = null) }
         }
     }
 
