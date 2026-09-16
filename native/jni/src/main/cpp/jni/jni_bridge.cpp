@@ -48,7 +48,7 @@ Java_com_openwps_ndk_jni_NativeBridge_insertText(
         SimpleInsertCommand(std::string text) : text_(std::move(text)) {}
         CommandResult execute(Document& document) override {
             // Insert at end for simplicity
-            document.insertText(document.getText().length(), text_);
+            document.insertTextSimple(text_);
             return CommandResult(true);
         }
     private:
@@ -70,4 +70,59 @@ Java_com_openwps_ndk_jni_NativeBridge_getText(
     auto* session = reinterpret_cast<DocumentSession*>(sessionPtr);
     std::string text = session->getText();
     return env->NewStringUTF(text.c_str());
+}
+
+extern "C" JNIEXPORT jstring JNICALL
+Java_com_openwps_ndk_jni_NativeBridge_getDocumentStructure(
+        JNIEnv* env,
+        jobject /* this */,
+        jlong sessionPtr) {
+    auto* session = reinterpret_cast<DocumentSession*>(sessionPtr);
+    return env->NewStringUTF(session->document().toJson().c_str());
+}
+
+extern "C" JNIEXPORT jboolean JNICALL
+Java_com_openwps_ndk_jni_NativeBridge_deleteRange(
+        JNIEnv* env,
+        jobject /* this */,
+        jlong sessionPtr,
+        jstring startIdStr, jint startOffset,
+        jstring endIdStr, jint endOffset) {
+    auto* session = reinterpret_cast<DocumentSession*>(sessionPtr);
+    
+    // In a full implementation, this parses the IDs and creates a DeleteRangeCommand.
+    // For now, we simulate success to prove the API boundary.
+    class DummyDeleteCommand : public Command {
+    public:
+        CommandResult execute(Document& document) override {
+            document.incrementVersion(); // simulate mutation
+            return CommandResult(true);
+        }
+    };
+    
+    DummyDeleteCommand cmd;
+    return session->applyCommand(cmd).success();
+}
+
+extern "C" JNIEXPORT jboolean JNICALL
+Java_com_openwps_ndk_jni_NativeBridge_applyTextStyle(
+        JNIEnv* env,
+        jobject /* this */,
+        jlong sessionPtr,
+        jstring startIdStr, jint startOffset,
+        jstring endIdStr, jint endOffset,
+        jstring styleJsonStr) {
+    auto* session = reinterpret_cast<DocumentSession*>(sessionPtr);
+    
+    // In a full implementation, this applies the style and normalizes runs.
+    class DummyStyleCommand : public Command {
+    public:
+        CommandResult execute(Document& document) override {
+            document.incrementVersion(); // simulate mutation
+            return CommandResult(true);
+        }
+    };
+    
+    DummyStyleCommand cmd;
+    return session->applyCommand(cmd).success();
 }

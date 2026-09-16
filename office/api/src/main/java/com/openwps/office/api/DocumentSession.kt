@@ -1,5 +1,7 @@
 package com.openwps.office.api
+
 import com.openwps.office.api.command.DocumentCommand
+import com.openwps.office.model.DocumentModel
 import com.openwps.office.model.DocumentRange
 
 interface DocumentSession {
@@ -8,6 +10,7 @@ interface DocumentSession {
     
     suspend fun applyCommand(command: DocumentCommand): OperationResult
     suspend fun getText(range: DocumentRange): String
+    suspend fun getDocumentStructure(): DocumentModel
     suspend fun save(): OperationResult
     suspend fun close()
 }

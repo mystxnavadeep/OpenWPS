@@ -6,6 +6,7 @@ import com.openwps.engines.document.NativeCapabilityRegistry
 import com.openwps.engines.document.NativeDocumentSession
 import com.openwps.office.api.DocumentSession
 import com.openwps.office.api.command.DocumentCommand
+import com.openwps.office.model.DocumentModel
 import com.openwps.office.model.DocumentObjectId
 import com.openwps.office.model.DocumentRange
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,6 +20,7 @@ import javax.inject.Inject
 
 data class EditorUiState(
     val content: String = "",
+    val documentModel: DocumentModel? = null,
     val isLoading: Boolean = false,
     val error: String? = null
 )
@@ -54,7 +56,8 @@ class DocumentEditorViewModel @Inject constructor() : ViewModel() {
         viewModelScope.launch {
             val range = DocumentRange(DocumentObjectId("root"), 0, DocumentObjectId("root"), 0)
             val text = session?.getText(range) ?: ""
-            _uiState.update { it.copy(content = text) }
+            val model = session?.getDocumentStructure()
+            _uiState.update { it.copy(content = text, documentModel = model) }
         }
     }
 

@@ -18,6 +18,9 @@ public:
         return command.execute(*document_);
     }
     
+    const Document& document() const { return *document_; }
+    Document& document() { return *document_; }
+
     std::string getText() const {
         return document_->getText();
     }
