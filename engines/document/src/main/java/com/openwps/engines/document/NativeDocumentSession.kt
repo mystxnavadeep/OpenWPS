@@ -62,8 +62,18 @@ class NativeDocumentSession(
                 NativeBridge.deleteRange(sessionPtr, command.range.startObjectId.id, command.range.startOffset, command.range.endObjectId.id, command.range.endOffset)
             }
             is DocumentCommand.ApplyTextStyle -> {
-                val styleJson = """{"isBold":${command.style.isBold},"isItalic":${command.style.isItalic},"isUnderline":${command.style.isUnderline}}"""
+                val styleJson = """{"isBold":${command.style.isBold},"isItalic":${command.style.isItalic},"isUnderline":${command.style.isUnderline},"isStrikethrough":${command.style.isStrikethrough},"isSuperscript":${command.style.isSuperscript},"isSubscript":${command.style.isSubscript}}"""
                 NativeBridge.applyTextStyle(sessionPtr, command.range.startObjectId.id, command.range.startOffset, command.range.endObjectId.id, command.range.endOffset, styleJson)
+            }
+            is DocumentCommand.ApplyParagraphStyle -> {
+                val p = command.style
+                val styleJson = """{"alignment":"${p.alignment}","headingLevel":${p.headingLevel},"isList":${p.isList}}"""
+                NativeBridge.applyParagraphStyle(sessionPtr, command.range.startObjectId.id, styleJson)
+            }
+            is DocumentCommand.SetSectionProperties -> {
+                val p = command.properties
+                val propsJson = """{"orientation":"${p.orientation}"}"""
+                NativeBridge.setSectionProperties(sessionPtr, command.targetSectionId, propsJson)
             }
             else -> return OperationResult(success = false, operationId = opId, errorCode = ErrorCode.UNSUPPORTED_OPERATION, errorMessage = "Command not yet supported by native engine")
         }
@@ -104,6 +114,25 @@ class NativeDocumentSession(
 
     override suspend fun getText(range: DocumentRange): String {
         return NativeBridge.getTextRange(sessionPtr, range.startObjectId.id, range.startOffset, range.endObjectId.id, range.endOffset)
+    }
+
+    override suspend fun getDocumentOutline(): List<com.openwps.office.model.OutlineNode> {
+        val jsonStr = NativeBridge.getDocumentOutline(sessionPtr)
+        val list = mutableListOf<com.openwps.office.model.OutlineNode>()
+        try {
+            val arr = JSONArray(jsonStr)
+            for (i in 0 until arr.length()) {
+                val obj = arr.getJSONObject(i)
+                list.add(com.openwps.office.model.OutlineNode(
+                    id = DocumentObjectId(obj.getString("id")),
+                    level = obj.getInt("level"),
+                    text = obj.getString("text")
+                ))
+            }
+        } catch (e: Exception) {
+            // Ignore
+        }
+        return list
     }
 
     override suspend fun getDocumentStructure(): DocumentModel {

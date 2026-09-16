@@ -45,4 +45,49 @@ class DocumentStructureParserTest {
         assertEquals(5, result.affectedRange?.startOffset)
         assertEquals(10, result.affectedRange?.endOffset)
     }
+
+
+    @Test
+    fun testParseParagraphStyle() {
+        val jsonStr = """
+        {
+            "id": "doc_1",
+            "version": 1,
+            "sections": [
+                {
+                    "id": "sec_1",
+                    "properties": {
+                        "orientation": "LANDSCAPE"
+                    },
+                    "blocks": [
+                        {
+                            "id": "blk_1",
+                            "paragraph": {
+                                "id": "par_1",
+                                "style": {
+                                    "alignment": "center",
+                                    "headingLevel": 2,
+                                    "isList": true,
+                                    "listId": "list1",
+                                    "listLevel": 1
+                                },
+                                "runs": []
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+        """.trimIndent()
+        
+        val doc = DocumentStructureParser.parseDocument(jsonStr)
+        val p = doc.sections.first().blocks.first().paragraph
+        assertEquals("center", p?.style?.alignment)
+        assertEquals(2, p?.style?.headingLevel)
+        assertEquals(true, p?.style?.isList)
+        assertEquals("list1", p?.style?.listId)
+        assertEquals(1, p?.style?.listLevel)
+        assertEquals("LANDSCAPE", doc.sections.first().properties?.orientation)
+    }
+
 }

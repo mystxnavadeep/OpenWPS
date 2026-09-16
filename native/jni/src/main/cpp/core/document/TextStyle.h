@@ -11,7 +11,11 @@ struct TextStyle {
     std::optional<bool> isBold;
     std::optional<bool> isItalic;
     std::optional<bool> isUnderline;
+    std::optional<bool> isStrikethrough;
+    std::optional<bool> isSuperscript;
+    std::optional<bool> isSubscript;
     std::optional<std::string> textColorHex;
+    std::optional<std::string> highlightColorHex;
     
     bool operator==(const TextStyle& other) const {
         return fontFamily == other.fontFamily &&
@@ -19,7 +23,11 @@ struct TextStyle {
                isBold == other.isBold &&
                isItalic == other.isItalic &&
                isUnderline == other.isUnderline &&
-               textColorHex == other.textColorHex;
+               isStrikethrough == other.isStrikethrough &&
+               isSuperscript == other.isSuperscript &&
+               isSubscript == other.isSubscript &&
+               textColorHex == other.textColorHex &&
+               highlightColorHex == other.highlightColorHex;
     }
     bool operator!=(const TextStyle& other) const { return !(*this == other); }
     

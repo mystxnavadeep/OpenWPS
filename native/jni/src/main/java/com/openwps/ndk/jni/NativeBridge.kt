@@ -20,6 +20,9 @@ object NativeBridge {
     external fun insertText(sessionPtr: Long, objectId: String, offset: Int, text: String, styleJson: String?): String
     external fun deleteRange(sessionPtr: Long, startId: String, startOffset: Int, endId: String, endOffset: Int): String
     external fun applyTextStyle(sessionPtr: Long, startId: String, startOffset: Int, endId: String, endOffset: Int, styleJson: String): String
+    external fun applyParagraphStyle(sessionPtr: Long, targetId: String, styleJson: String): String
+    external fun setSectionProperties(sessionPtr: Long, targetId: String, propsJson: String): String
+    external fun getDocumentOutline(sessionPtr: Long): String
     
     // Reads
     external fun getTextRange(sessionPtr: Long, startId: String, startOffset: Int, endId: String, endOffset: Int): String

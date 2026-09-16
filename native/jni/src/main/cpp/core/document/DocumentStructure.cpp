@@ -15,18 +15,18 @@ std::string TextStyle::toJson() const {
     std::ostringstream ss;
     ss << "{";
     bool first = true;
-    auto addProp = [&](const char* name, const std::string& val, bool isStr) {
-        if (!first) ss << ",";
-        ss << "\"" << name << "\":";
-        if (isStr) ss << "\"" << val << "\""; else ss << val;
-        first = false;
-    };
-    if (fontFamily) addProp("fontFamily", JsonBuilder::escape(*fontFamily), true);
-    if (fontSize) addProp("fontSize", std::to_string(*fontSize), false);
-    if (isBold) addProp("isBold", *isBold ? "true" : "false", false);
-    if (isItalic) addProp("isItalic", *isItalic ? "true" : "false", false);
-    if (isUnderline) addProp("isUnderline", *isUnderline ? "true" : "false", false);
-    if (textColorHex) addProp("textColorHex", JsonBuilder::escape(*textColorHex), true);
+    auto addComma = [&]() { if (!first) ss << ","; first = false; };
+    
+    if (fontFamily) { addComma(); ss << "\"fontFamily\":\"" << JsonBuilder::escape(*fontFamily) << "\""; }
+    if (fontSize) { addComma(); ss << "\"fontSize\":" << *fontSize; }
+    if (isBold) { addComma(); ss << "\"isBold\":" << (*isBold ? "true" : "false"); }
+    if (isItalic) { addComma(); ss << "\"isItalic\":" << (*isItalic ? "true" : "false"); }
+    if (isUnderline) { addComma(); ss << "\"isUnderline\":" << (*isUnderline ? "true" : "false"); }
+    if (isStrikethrough) { addComma(); ss << "\"isStrikethrough\":" << (*isStrikethrough ? "true" : "false"); }
+    if (isSuperscript) { addComma(); ss << "\"isSuperscript\":" << (*isSuperscript ? "true" : "false"); }
+    if (isSubscript) { addComma(); ss << "\"isSubscript\":" << (*isSubscript ? "true" : "false"); }
+    if (textColorHex) { addComma(); ss << "\"textColorHex\":\"" << JsonBuilder::escape(*textColorHex) << "\""; }
+    if (highlightColorHex) { addComma(); ss << "\"highlightColorHex\":\"" << JsonBuilder::escape(*highlightColorHex) << "\""; }
     ss << "}";
     return ss.str();
 }
@@ -34,9 +34,21 @@ std::string TextStyle::toJson() const {
 std::string ParagraphStyle::toJson() const {
     std::ostringstream ss;
     ss << "{";
-    if (alignment) {
-        ss << "\"alignment\":\"" << JsonBuilder::escape(*alignment) << "\"";
-    }
+    bool first = true;
+    auto addComma = [&]() { if (!first) ss << ","; first = false; };
+    
+    if (alignment) { addComma(); ss << "\"alignment\":\"" << JsonBuilder::escape(*alignment) << "\""; }
+    if (indentLeft) { addComma(); ss << "\"indentLeft\":" << *indentLeft; }
+    if (indentRight) { addComma(); ss << "\"indentRight\":" << *indentRight; }
+    if (indentFirstLine) { addComma(); ss << "\"indentFirstLine\":" << *indentFirstLine; }
+    if (spacingBefore) { addComma(); ss << "\"spacingBefore\":" << *spacingBefore; }
+    if (spacingAfter) { addComma(); ss << "\"spacingAfter\":" << *spacingAfter; }
+    if (lineSpacing) { addComma(); ss << "\"lineSpacing\":" << *lineSpacing; }
+    if (headingLevel) { addComma(); ss << "\"headingLevel\":" << *headingLevel; }
+    if (isList) { addComma(); ss << "\"isList\":" << (*isList ? "true" : "false"); }
+    if (listId) { addComma(); ss << "\"listId\":\"" << JsonBuilder::escape(*listId) << "\""; }
+    if (listLevel) { addComma(); ss << "\"listLevel\":" << *listLevel; }
+    
     ss << "}";
     return ss.str();
 }
@@ -284,10 +296,34 @@ std::string Block::toJson() const {
     return ss.str();
 }
 
+std::string SectionProperties::toJson() const {
+    std::ostringstream ss;
+    ss << "{";
+    bool first = true;
+    auto addComma = [&]() { if (!first) ss << ","; first = false; };
+    
+    if (pageSize) {
+        addComma();
+        ss << "\"pageSize\":{\"width\":" << pageSize->width << ",\"height\":" << pageSize->height << "}";
+    }
+    if (orientation) {
+        addComma();
+        ss << "\"orientation\":\"" << JsonBuilder::escape(*orientation) << "\"";
+    }
+    if (margins) {
+        addComma();
+        ss << "\"margins\":{\"top\":" << margins->top << ",\"bottom\":" << margins->bottom << ",\"left\":" << margins->left << ",\"right\":" << margins->right << "}";
+    }
+    
+    ss << "}";
+    return ss.str();
+}
+
 std::string Section::toJson() const {
     std::ostringstream ss;
     ss << "{";
     ss << "\"id\":\"" << JsonBuilder::escape(id_.id()) << "\",";
+    ss << "\"properties\":" << props_.toJson() << ",";
     ss << "\"blocks\":[";
     for (size_t i = 0; i < blocks_.size(); ++i) {
         if (i > 0) ss << ",";

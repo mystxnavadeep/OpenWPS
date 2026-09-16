@@ -16,6 +16,11 @@ class NativeCapabilityRegistry : CapabilityRegistry {
         DocumentCapability("document.text.replace", "Can replace specific text ranges", false), // Could be combo of delete/insert
         DocumentCapability("document.text.style", "Can apply formatting to character ranges", true),
         DocumentCapability("document.structure.read", "Can read the structured document model", true)
+,
+        DocumentCapability("document.text.strikethrough", "Support for strikethrough text styling", true),
+        DocumentCapability("document.paragraph.style", "Support for paragraph alignment, heading level, spacing, etc.", true),
+        DocumentCapability("document.section.layout", "Support for section properties like orientation", true),
+        DocumentCapability("document.outline.read", "Support for getting document outline structured by headings", true)
     )
 
     override fun getCapabilities(): List<DocumentCapability> = capabilities

@@ -17,6 +17,7 @@ public:
         
     const DocumentObjectId& id() const { return id_; }
     const ParagraphStyle& style() const { return style_; }
+    void setStyle(const ParagraphStyle& style) { style_ = style; }
     const std::vector<TextRun>& runs() const { return runs_; }
     std::vector<TextRun>& runs() { return runs_; }
     

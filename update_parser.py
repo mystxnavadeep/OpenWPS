@@ -1,25 +1,7 @@
-package com.openwps.engines.document
+with open("engines/document/src/main/java/com/openwps/engines/document/DocumentStructureParser.kt", "r") as f:
+    content = f.read()
 
-import com.openwps.office.model.*
-import org.json.JSONObject
-import org.json.JSONArray
-
-object DocumentStructureParser {
-    fun parseDocument(jsonStr: String): DocumentModel {
-        val root = JSONObject(jsonStr)
-        val id = root.getString("id")
-        val version = root.getInt("version")
-        val sections = mutableListOf<Section>()
-        
-        val sectionsArr = root.getJSONArray("sections")
-        for (i in 0 until sectionsArr.length()) {
-            sections.add(parseSection(sectionsArr.getJSONObject(i)))
-        }
-        
-        return DocumentModel(DocumentObjectId(id), version, sections)
-    }
-    
-    private fun parseSection(obj: JSONObject): Section {
+new_parse_section = """    private fun parseSection(obj: JSONObject): Section {
         val id = obj.getString("id")
         val blocks = mutableListOf<Block>()
         val blocksArr = obj.getJSONArray("blocks")
@@ -49,36 +31,17 @@ object DocumentStructureParser {
         }
         
         return Section(DocumentObjectId(id), blocks, props)
-    }
-    
-    private fun parseBlock(obj: JSONObject): Block {
-        val id = obj.getString("id")
-        var paragraph: Paragraph? = null
-        if (obj.has("paragraph")) {
-            paragraph = parseParagraph(obj.getJSONObject("paragraph"))
-        }
-        return Block(DocumentObjectId(id), paragraph)
-    }
-    
-    private fun parseParagraph(obj: JSONObject): Paragraph {
-        val id = obj.getString("id")
-        val runs = mutableListOf<TextRun>()
-        val runsArr = obj.getJSONArray("runs")
-        for (i in 0 until runsArr.length()) {
-            runs.add(parseTextRun(runsArr.getJSONObject(i)))
-        }
-        val style = parseParagraphStyle(obj.getJSONObject("style"))
-        return Paragraph(DocumentObjectId(id), runs, style)
-    }
-    
-    private fun parseTextRun(obj: JSONObject): TextRun {
-        val id = obj.getString("id")
-        val text = obj.getString("text")
-        val style = parseTextStyle(obj.getJSONObject("style"))
-        return TextRun(DocumentObjectId(id), text, style)
-    }
-    
-    private fun parseParagraphStyle(obj: JSONObject): ParagraphStyle {
+    }"""
+
+content = content.replace("    private fun parseSection(obj: JSONObject): Section {", new_parse_section.split("\n", 1)[0])
+content = content.replace("        return Section(DocumentObjectId(id), blocks)\n    }", "        return Section(DocumentObjectId(id), blocks, props)\n    }")
+
+# Replace parseSection completely to be safe
+import re
+content = re.sub(r'    private fun parseSection\(obj: JSONObject\): Section \{.*?\n    \}', new_parse_section, content, flags=re.DOTALL)
+
+
+new_parse_para_style = """    private fun parseParagraphStyle(obj: JSONObject): ParagraphStyle {
         return ParagraphStyle(
             alignment = if (obj.has("alignment")) obj.getString("alignment") else null,
             indentLeft = if (obj.has("indentLeft")) obj.getDouble("indentLeft").toFloat() else null,
@@ -92,9 +55,11 @@ object DocumentStructureParser {
             listId = if (obj.has("listId")) obj.getString("listId") else null,
             listLevel = if (obj.has("listLevel")) obj.getInt("listLevel") else null
         )
-    }
-    
-    private fun parseTextStyle(obj: JSONObject): TextStyle {
+    }"""
+
+content = re.sub(r'    private fun parseParagraphStyle\(obj: JSONObject\): ParagraphStyle \{.*?\n    \}', new_parse_para_style, content, flags=re.DOTALL)
+
+new_parse_text_style = """    private fun parseTextStyle(obj: JSONObject): TextStyle {
         return TextStyle(
             fontFamily = if (obj.has("fontFamily")) obj.getString("fontFamily") else null,
             fontSize = if (obj.has("fontSize")) obj.getDouble("fontSize").toFloat() else null,
@@ -107,5 +72,11 @@ object DocumentStructureParser {
             textColorHex = if (obj.has("textColorHex")) obj.getString("textColorHex") else null,
             highlightColorHex = if (obj.has("highlightColorHex")) obj.getString("highlightColorHex") else null
         )
-    }
-}
+    }"""
+
+content = re.sub(r'    private fun parseTextStyle\(obj: JSONObject\): TextStyle \{.*?\n    \}', new_parse_text_style, content, flags=re.DOTALL)
+
+with open("engines/document/src/main/java/com/openwps/engines/document/DocumentStructureParser.kt", "w") as f:
+    f.write(content)
+
+print("DocumentStructureParser updated!")

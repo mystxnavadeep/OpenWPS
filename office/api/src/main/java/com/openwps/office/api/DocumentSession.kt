@@ -18,4 +18,5 @@ interface DocumentSession {
     suspend fun resolveWord(paragraphId: String, wordIndex: Int): OperationResult
     suspend fun resolveSentence(paragraphId: String, sentenceIndex: Int): OperationResult
     suspend fun search(query: String, matchCase: Boolean): List<DocumentRange>
+    suspend fun getDocumentOutline(): List<com.openwps.office.model.OutlineNode>
 }
